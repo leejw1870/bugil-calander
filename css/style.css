@@ -1,0 +1,253 @@
+/* ================================
+   BUGIL - Dark Orange Theme
+   ================================ */
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #111111; }
+::-webkit-scrollbar-thumb { background: #333333; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #f97316; }
+
+/* ================================
+   네비게이션
+   ================================ */
+.nav-item.active {
+    background-color: rgba(249, 115, 22, 0.15);
+    color: #f97316;
+}
+.nav-item.active i { color: #f97316; }
+
+.mobile-nav-item { color: #555555; }
+.mobile-nav-item.active { color: #f97316; }
+.mobile-nav-item.active span { color: #f97316; font-weight: 600; }
+
+/* ================================
+   카테고리 라디오 (다크 버전)
+   ================================ */
+.category-radio input:checked + .category-option[data-color="blue"]   { border-color: #3B82F6; background-color: rgba(59,130,246,0.15); }
+.category-radio input:checked + .category-option[data-color="red"]    { border-color: #EF4444; background-color: rgba(239,68,68,0.15); }
+.category-radio input:checked + .category-option[data-color="orange"] { border-color: #F97316; background-color: rgba(249,115,22,0.15); }
+.category-radio input:checked + .category-option[data-color="green"]  { border-color: #22C55E; background-color: rgba(34,197,94,0.15); }
+.category-radio input:checked + .category-option[data-color="purple"] { border-color: #A855F7; background-color: rgba(168,85,247,0.15); }
+
+.category-option span.text-gray-400 { color: #9ca3af; }
+.category-radio input:checked + .category-option span.text-gray-400 { color: #e5e7eb; }
+
+/* 중요도 라디오 */
+.priority-radio input[value="low"]:checked    + .priority-option { border-color: #22C55E; background-color: rgba(34,197,94,0.15);  color: #4ade80; }
+.priority-radio input[value="medium"]:checked + .priority-option { border-color: #F59E0B; background-color: rgba(245,158,11,0.15); color: #fbbf24; }
+.priority-radio input[value="high"]:checked   + .priority-option { border-color: #EF4444; background-color: rgba(239,68,68,0.15);  color: #f87171; }
+
+/* ================================
+   모달 애니메이션
+   ================================ */
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-modal-in { animation: modalIn 0.25s ease-out; }
+
+/* ================================
+   캘린더 (다크 버전)
+   ================================ */
+.cal-cell {
+    min-height: 80px;
+    border: 1px solid #1e1e1e;
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    background-color: #141414;
+}
+.cal-cell:hover { background-color: #1a1a1a; }
+.cal-cell.today { background-color: rgba(249, 115, 22, 0.08); }
+.cal-cell.today .cal-date {
+    background-color: #f97316;
+    color: white;
+    border-radius: 9999px;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+}
+.cal-cell.selected { background-color: rgba(249, 115, 22, 0.15); border-color: rgba(249,115,22,0.4); }
+.cal-cell.other-month { opacity: 0.25; }
+.cal-cell .cal-date { font-size: 13px; font-weight: 600; color: #d1d5db; }
+.cal-cell.sunday .cal-date  { color: #f87171; }
+.cal-cell.saturday .cal-date { color: #60a5fa; }
+
+.cal-dot {
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    display: inline-block;
+}
+
+@media (max-width: 768px) {
+    .cal-cell { min-height: 48px; padding: 4px; }
+    .cal-cell .cal-date { font-size: 12px; }
+    .cal-cell.today .cal-date { width: 24px; height: 24px; }
+}
+
+/* ================================
+   카테고리 색상 바 (다크 버전 - 더 밝게)
+   ================================ */
+.cat-bar {
+    width: 4px;
+    border-radius: 999px;
+    min-height: 100%;
+    flex-shrink: 0;
+}
+.cat-bar.class      { background-color: #60a5fa; }
+.cat-bar.exam       { background-color: #f87171; }
+.cat-bar.assignment { background-color: #fb923c; }
+.cat-bar.study      { background-color: #4ade80; }
+.cat-bar.other      { background-color: #c084fc; }
+
+/* ================================
+   스케줄 카드 (다크 버전)
+   ================================ */
+.schedule-card {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    background-color: #141414;
+    border-radius: 12px;
+    border: 1px solid #222222;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.schedule-card:hover {
+    border-color: rgba(249, 115, 22, 0.3);
+    box-shadow: 0 2px 12px rgba(249,115,22,0.08);
+    transform: translateY(-1px);
+}
+.schedule-card.completed { opacity: 0.4; }
+.schedule-card.completed .schedule-title { text-decoration: line-through; }
+
+/* ================================
+   필터 버튼 (다크 버전)
+   ================================ */
+.filter-btn { transition: all 0.2s; }
+.filter-btn.active {
+    background-color: #f97316 !important;
+    color: white !important;
+    border-color: #f97316 !important;
+}
+
+/* ================================
+   페이지 전환
+   ================================ */
+.page-view { animation: fadeIn 0.3s ease-out; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ================================
+   토스트 알림 (다크 버전)
+   ================================ */
+.toast {
+    position: fixed;
+    bottom: 80px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background-color: #1e1e1e;
+    border: 1px solid #333333;
+    color: #f5f5f5;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px; font-weight: 500;
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+@media (min-width: 768px) { .toast { bottom: 40px; } }
+
+/* ================================
+   D-Day 위젯
+   ================================ */
+.dday-item {
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.dday-number { font-size: 22px; font-weight: 800; line-height: 1; }
+
+/* ================================
+   이번 주 미리보기
+   ================================ */
+.week-day-col {
+    text-align: center;
+    padding: 10px 4px;
+    border-radius: 12px;
+    min-height: 90px;
+    background-color: #1a1a1a;
+}
+.week-day-col.today {
+    background-color: rgba(249,115,22,0.1);
+    border: 2px solid rgba(249,115,22,0.4);
+}
+
+/* ================================
+   통계 바
+   ================================ */
+.stat-bar { height: 6px; border-radius: 999px; transition: width 0.6s ease; }
+.progress-bar-track { height: 6px; background-color: #1e1e1e; border-radius: 999px; overflow: hidden; }
+.progress-bar-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #f97316, #fb923c);
+    transition: width 0.8s ease;
+}
+
+/* ================================
+   검색 하이라이트
+   ================================ */
+mark {
+    background-color: rgba(249,115,22,0.3);
+    color: #fb923c;
+    border-radius: 2px;
+    padding: 0 2px;
+}
+
+/* ================================
+   우선순위 뱃지
+   ================================ */
+.priority-badge {
+    font-size: 10px; padding: 2px 6px;
+    border-radius: 999px; font-weight: 600;
+}
+.priority-badge.high   { background: rgba(239,68,68,0.2);  color: #f87171; }
+.priority-badge.medium { background: rgba(245,158,11,0.2); color: #fbbf24; }
+.priority-badge.low    { background: rgba(34,197,94,0.2);  color: #4ade80; }
+
+/* ================================
+   반복 일정 UI
+   ================================ */
+.repeat-type-radio input:checked + .repeat-type-opt {
+    border-color: #f97316;
+    background-color: rgba(249,115,22,0.15);
+    color: #fb923c;
+}
+.day-check input:checked + .day-opt {
+    border-color: #f97316 !important;
+    background-color: rgba(249,115,22,0.2);
+    color: #fb923c !important;
+}
+.custom-date-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px;
+    background: rgba(249,115,22,0.2);
+    color: #fb923c;
+    border-radius: 8px;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.custom-date-tag:hover { background: rgba(249,115,22,0.4); }
+
+/* date/time input 다크 스타일 */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+}

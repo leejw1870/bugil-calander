@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUGIL — Home</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+    <style>
+        body { font-family: 'Pretendard Variable', Pretendard, system-ui, sans-serif; }
+
+        /* ── 배경 ─────────────────────────────────────── */
+        .bg-radial {
+            background: #0a0a0a;
+        }
+        .bg-radial::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: url('bg.jpg') center center / cover no-repeat;
+            opacity: 0.4;
+            z-index: 0;
+        }
+
+
+        /* ── 공통 애니메이션 ─────────────────────────── */
+        @keyframes enterUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes enterDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes exitUp {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to   { opacity: 0; transform: translateY(-20px) scale(0.97); }
+        }
+        @keyframes exitDown {
+            from { opacity: 1; transform: translateY(0); }
+            to   { opacity: 0; transform: translateY(20px); }
+        }
+        @keyframes pulseSlow {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.3; }
+        }
+
+        /* 입장 클래스 (바깥→중심: hint→weather→date→logo→clock) */
+        .enter-hint    { animation: enterDown  0.6s 0.00s ease both; }
+        .enter-weather { animation: enterUp    0.6s 0.10s ease both; }
+        .enter-date    { animation: enterUp    0.6s 0.22s ease both; }
+        .enter-logo    { animation: enterUp    0.6s 0.35s ease both; }
+        .enter-clock   { animation: enterUp    0.7s 0.50s cubic-bezier(.22,1,.36,1) both; }
+
+        /* 퇴장 클래스 (바깥→중심: hint→weather→date→logo→clock) */
+        .exit-hint    { animation: exitDown  0.4s 0.00s ease forwards; }
+        .exit-weather { animation: exitUp    0.4s 0.08s ease forwards; }
+        .exit-date    { animation: exitUp    0.4s 0.17s ease forwards; }
+        .exit-logo    { animation: exitUp    0.4s 0.26s ease forwards; }
+        .exit-clock   { animation: exitUp    0.4s 0.35s ease forwards; }
+
+        #click-hint { animation: pulseSlow 2.5s ease infinite; }
+        #click-hint.exit-hint { animation: exitDown 0.4s 0.00s ease forwards; }
+
+        /* 글로우 텍스트 */
+        #clock {
+            text-shadow: 0 0 120px rgba(249,115,22,0.4), 0 0 40px rgba(249,115,22,0.15);
+        }
+
+        /* ── 플래시 메시지 ───────────────────────────── */
+        @keyframes flashIn {
+            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+            30%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            70%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.04); }
+        }
+        #flash-msg {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Pacifico', cursive;
+            font-size: clamp(60px, 18vw, 220px);
+            color: rgba(210, 210, 210, 0.13);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 50;
+            display: none;
+            line-height: 1;
+            user-select: none;
+        }
+        #flash-msg.show {
+            display: block;
+            animation: flashIn 1.1s ease forwards;
+        }
+    </style>
+</head>
+<body class="bg-radial min-h-screen text-white overflow-hidden select-none"
+      onclick="exitToApp()">
+
+
+    <!-- 플래시 메시지 -->
+    <div id="flash-msg"></div>
+
+    <!-- 클릭 힌트 (하단, 가장 바깥) -->
+    <div id="click-hint"
+         class="enter-hint fixed bottom-8 left-1/2 -translate-x-1/2 text-gray-600 text-sm pointer-events-none z-10"
+         style="font-family:'Pacifico',cursive;">
+        Click anywhere to enter →
+    </div>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="relative z-10 flex flex-col items-center justify-center min-h-screen pointer-events-none gap-3">
+
+        <!-- 날짜 -->
+        <div id="date-display" class="enter-date text-xl text-gray-500 order-3"
+             style="font-family:'Pacifico',cursive;">
+            Loading...
+        </div>
+
+        <!-- 로고 (중간) -->
+        <div id="branding" class="enter-logo flex items-center gap-3 mb-2 order-2">
+            <div class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-orange-500/40">🦅</div>
+            <span class="text-xl text-white" style="font-family:'Pacifico',cursive;">BUGIL</span>
+        </div>
+
+        <!-- 시계 (중심 — 마지막 등장/퇴장) -->
+        <div id="clock"
+             class="enter-clock text-[88px] leading-none font-bold text-white tracking-wider order-1"
+             style="font-family:'Pacifico',cursive;">
+            00:00:00
+        </div>
+
+    </div>
+
+    <script>
+    // ── 시계 ─────────────────────────────────────────────
+    function updateClock() {
+        const kst = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+        const h = String(kst.getHours()).padStart(2, '0');
+        const m = String(kst.getMinutes()).padStart(2, '0');
+        const s = String(kst.getSeconds()).padStart(2, '0');
+        document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+
+        const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        document.getElementById('date-display').textContent =
+            `${days[kst.getDay()]}, ${months[kst.getMonth()]} ${kst.getDate()}, ${kst.getFullYear()}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── 퇴장 애니메이션 → 대시보드 이동 ─────────────────
+    let exiting = false;
+    function exitToApp() {
+        if (exiting) return;
+        exiting = true;
+
+        // 바깥 → 중심 순서로 퇴장
+        document.getElementById('click-hint').classList.remove('enter-hint');
+        document.getElementById('click-hint').classList.add('exit-hint');
+
+        setTimeout(() => {
+            document.getElementById('date-display').classList.remove('enter-date');
+            document.getElementById('date-display').classList.add('exit-date');
+        }, 170);
+
+        setTimeout(() => {
+            document.getElementById('branding').classList.remove('enter-logo');
+            document.getElementById('branding').classList.add('exit-logo');
+        }, 260);
+
+        setTimeout(() => {
+            document.getElementById('clock').classList.remove('enter-clock');
+            document.getElementById('clock').classList.add('exit-clock');
+        }, 350);
+
+        // 시계 다 사라진 뒤 → 플래시 메시지 표시
+        const messages = ['welcome', 'good luck'];
+        const msg = messages[Math.floor(Math.random() * messages.length)];
+        setTimeout(() => {
+            const el = document.getElementById('flash-msg');
+            el.textContent = msg;
+            el.classList.add('show');
+        }, 800);
+
+        // 플래시 메시지 끝난 뒤 → 이동
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 1950);
+    }
+    </script>
+</body>
+</html>
