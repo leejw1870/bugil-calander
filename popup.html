@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>BUGIL 위젯</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+        body {
+            font-family: 'Pretendard Variable', Pretendard, sans-serif;
+            background: #0d0d0d;
+            color: #f0f0f0;
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── 헤더 ── */
+        .header {
+            background: #111;
+            border-bottom: 1px solid #1f1f1f;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            -webkit-app-region: drag;
+        }
+        .logo {
+            width: 30px; height: 30px;
+            background: #f97316;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+            -webkit-app-region: no-drag;
+        }
+        .header-info { flex: 1; min-width: 0; }
+        .header-title { font-size: 15px; font-weight: 800; color: #f97316; letter-spacing: 1.5px; }
+        .header-date  { font-size: 12px; color: #666; margin-top: 1px; }
+
+        .header-btns { display: flex; gap: 4px; -webkit-app-region: no-drag; }
+        .hbtn {
+            width: 28px; height: 28px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            color: #666;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+            transition: all .15s;
+        }
+        .hbtn:hover { background: #242424; color: #f97316; border-color: #f97316; }
+        .hbtn.close:hover { color: #f87171; border-color: #f87171; }
+
+        /* ── 스크롤 영역 ── */
+        .body {
+            overflow-y: auto;
+            max-height: 480px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* ── 진행률 카드 ── */
+        .progress-card {
+            background: #141414;
+            border: 1px solid #1e1e1e;
+            border-radius: 10px;
+            padding: 9px 12px;
+        }
+        .progress-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .progress-label { font-size: 13px; font-weight: 600; color: #888; }
+        .progress-nums  { font-size: 15px; font-weight: 700; color: #f97316; }
+        .bar-bg {
+            height: 5px;
+            background: #222;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f97316, #fb923c);
+            border-radius: 999px;
+            transition: width .5s ease;
+        }
+
+        /* ── 섹션 타이틀 ── */
+        .sec-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .sec-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #555;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+        }
+        .check-all-btn {
+            font-size: 11px;
+            font-weight: 700;
+            font-family: inherit;
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid #2a2a2a;
+            background: #1a1a1a;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all .15s;
+            -webkit-app-region: no-drag;
+        }
+        .check-all-btn:hover {
+            background: rgba(34,197,94,.12);
+            border-color: rgba(34,197,94,.4);
+            color: #22c55e;
+        }
+        .check-all-btn.all-done {
+            background: rgba(239,68,68,.1);
+            border-color: rgba(239,68,68,.3);
+            color: #f87171;
+        }
+        .check-all-btn.all-done:hover {
+            background: rgba(239,68,68,.18);
+        }
+        /* 체크 완료 플래시 */
+        @keyframes flash-green {
+            0%   { background: rgba(34,197,94,.3); }
+            100% { background: #141414; }
+        }
+        .sched-item.flash { animation: flash-green .4s ease; }
+
+        /* ── D-Day ── */
+        .dday-row {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+        .dday-card {
+            flex-shrink: 0;
+            background: #141414;
+            border: 1px solid #1f1f1f;
+            border-radius: 9px;
+            padding: 7px 11px;
+            min-width: 90px;
+            cursor: default;
+        }
+        .dday-num {
+            font-size: 20px;
+            font-weight: 800;
+            color: #f97316;
+            line-height: 1;
+        }
+        .dday-num.is-today { color: #fbbf24; }
+        .dday-name {
+            font-size: 12px;
+            color: #888;
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .no-item {
+            font-size: 13px;
+            color: #444;
+            padding: 4px 0;
+        }
+
+        /* ── 일정 목록 ── */
+        .sched-list { display: flex; flex-direction: column; gap: 5px; }
+
+        .sched-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: #141414;
+            border: 1px solid #1e1e1e;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: all .15s;
+            -webkit-app-region: no-drag;
+        }
+        .sched-item:hover { background: #1a1a1a; border-color: rgba(249,115,22,.35); }
+        .sched-item.done  { opacity: .38; }
+
+        .cat-bar {
+            width: 3px;
+            border-radius: 999px;
+            align-self: stretch;
+            flex-shrink: 0;
+        }
+        .check {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            border: 2px solid #2e2e2e;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: all .15s;
+            font-size: 8px;
+            color: transparent;
+        }
+        .check.on {
+            background: #22c55e;
+            border-color: #22c55e;
+            color: white;
+        }
+        .item-body { flex: 1; min-width: 0; }
+        .item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e0e0e0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .done .item-title { text-decoration: line-through; color: #555; }
+        .item-time { font-size: 12px; color: #555; margin-top: 2px; }
+
+        .high-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #ef4444;
+            flex-shrink: 0;
+        }
+
+        .empty-box {
+            text-align: center;
+            padding: 16px 0 10px;
+        }
+        .empty-box .big { font-size: 28px; display: block; margin-bottom: 6px; }
+        .empty-box p   { font-size: 13px; color: #555; }
+
+        /* ── 푸터 ── */
+        .footer {
+            border-top: 1px solid #181818;
+            padding: 7px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            background: #0d0d0d;
+        }
+        .footer-time { font-size: 12px; color: #3a3a3a; }
+        .open-btn {
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            color: #f97316;
+            background: rgba(249,115,22,.1);
+            border: 1px solid rgba(249,115,22,.2);
+            border-radius: 6px;
+            padding: 4px 9px;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .open-btn:hover { background: rgba(249,115,22,.2); }
+
+        /* 새로고침 아이콘 회전 애니메이션 */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinning { animation: spin .6s linear; }
+    </style>
+</head>
+<body>
+
+    <!-- 헤더 -->
+    <div class="header">
+        <div class="logo">🦅</div>
+        <div class="header-info">
+            <div class="header-title">BUGIL</div>
+            <div class="header-date" id="hdr-date">로딩 중...</div>
+        </div>
+        <div class="header-btns">
+            <button class="hbtn" id="refresh-btn" onclick="doRefresh()" title="새로고침">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="hbtn close" onclick="window.close()" title="닫기">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 본문 -->
+    <div class="body">
+
+        <!-- 진행률 -->
+        <div class="progress-card">
+            <div class="progress-row">
+                <span class="progress-label">✅ 오늘 완료</span>
+                <span class="progress-nums"><span id="done-cnt">0</span> / <span id="total-cnt">0</span></span>
+            </div>
+            <div class="bar-bg">
+                <div class="bar-fill" id="bar-fill" style="width:0%"></div>
+            </div>
+        </div>
+
+        <!-- D-Day -->
+        <div>
+            <div class="sec-title">🔥 D-Day</div>
+            <div class="dday-row" id="dday-list"></div>
+        </div>
+
+        <!-- 오늘 일정 -->
+        <div>
+            <div class="sec-row">
+                <div class="sec-title">📋 오늘의 일정</div>
+                <button class="check-all-btn" id="check-all-btn" onclick="checkAll()">
+                    <i class="fas fa-check-double"></i>
+                    <span id="check-all-label">전체 완료</span>
+                </button>
+            </div>
+            <div class="sched-list" id="sched-list"></div>
+        </div>
+
+    </div>
+
+    <!-- 푸터 -->
+    <div class="footer">
+        <span class="footer-time" id="upd-time"></span>
+        <button class="open-btn" onclick="openApp()">앱 열기 →</button>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
