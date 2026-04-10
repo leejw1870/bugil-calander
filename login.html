@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUGIL — Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
+
+    <style>
+        body { font-family: 'Pretendard Variable', Pretendard, system-ui, sans-serif; }
+
+        .bg-radial::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: url('bg.jpg') center center / cover no-repeat;
+            opacity: 0.4;
+            z-index: 0;
+        }
+
+        .card {
+            background: rgba(17,17,17,0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .input-field {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            color: #f0f0f0;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #f97316;
+        }
+        .input-field::placeholder { color: #555; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            transition: opacity 0.2s, transform 0.1s;
+        }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-primary:active { transform: scale(0.98); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.5s ease both; }
+
+        .tab-btn { transition: all 0.2s; }
+        .tab-btn.active {
+            color: #f97316;
+            border-bottom: 2px solid #f97316;
+        }
+
+        #toast {
+            transition: opacity 0.3s, transform 0.3s;
+        }
+    </style>
+</head>
+<body class="bg-radial bg-[#0a0a0a] min-h-screen flex items-center justify-center p-4">
+
+    <div class="relative z-10 w-full max-w-sm fade-up">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center gap-3 mb-2">
+                <div class="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-orange-500/40">🦅</div>
+                <h1 class="text-3xl text-white" style="font-family:'Pacifico',cursive;">BUGIL</h1>
+            </div>
+            <p class="text-gray-500 text-sm" style="font-family:'Pacifico',cursive;">Study Planner</p>
+        </div>
+
+        <!-- Card -->
+        <div class="card rounded-2xl p-8">
+            <!-- Tab -->
+            <div class="flex border-b border-[#222] mb-6">
+                <button id="tab-login" onclick="switchTab('login')"
+                    class="tab-btn active flex-1 pb-3 text-sm font-semibold text-gray-400"
+                    style="font-family:'Pacifico',cursive;">Login</button>
+                <button id="tab-signup" onclick="switchTab('signup')"
+                    class="tab-btn flex-1 pb-3 text-sm font-semibold text-gray-400"
+                    style="font-family:'Pacifico',cursive;">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5" style="font-family:'Pacifico',cursive;">Email</label>
+                    <input id="login-email" type="email" placeholder="your@email.com"
+                        class="input-field w-full px-4 py-3 rounded-xl text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5" style="font-family:'Pacifico',cursive;">Password</label>
+                    <input id="login-password" type="password" placeholder="••••••••"
+                        class="input-field w-full px-4 py-3 rounded-xl text-sm" required>
+                </div>
+                <button type="submit" class="btn-primary w-full py-3 rounded-xl text-white font-bold text-sm mt-2 shadow-lg shadow-orange-500/30"
+                    style="font-family:'Pacifico',cursive;">
+                    Login
+                </button>
+            </form>
+
+            <!-- Sign Up Form -->
+            <form id="form-signup" onsubmit="handleSignup(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5" style="font-family:'Pacifico',cursive;">Email</label>
+                    <input id="signup-email" type="email" placeholder="your@email.com"
+                        class="input-field w-full px-4 py-3 rounded-xl text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5" style="font-family:'Pacifico',cursive;">Password</label>
+                    <input id="signup-password" type="password" placeholder="6자 이상"
+                        class="input-field w-full px-4 py-3 rounded-xl text-sm" required minlength="6">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5" style="font-family:'Pacifico',cursive;">Confirm Password</label>
+                    <input id="signup-confirm" type="password" placeholder="비밀번호 재입력"
+                        class="input-field w-full px-4 py-3 rounded-xl text-sm" required>
+                </div>
+                <button type="submit" class="btn-primary w-full py-3 rounded-xl text-white font-bold text-sm mt-2 shadow-lg shadow-orange-500/30"
+                    style="font-family:'Pacifico',cursive;">
+                    Create Account
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center text-xs text-gray-600 mt-6">BUGIL Study Planner · For Bugil Academy Students</p>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#1e1e1e] border border-[#333] text-white text-sm px-5 py-3 rounded-xl shadow-xl opacity-0 pointer-events-none z-50"></div>
+
+    <script>
+        // Redirect if already logged in
+        auth.onAuthStateChanged(user => {
+            if (user) window.location.href = 'index.html';
+        });
+
+        function switchTab(tab) {
+            const isLogin = tab === 'login';
+            document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+            document.getElementById('form-signup').classList.toggle('hidden', isLogin);
+            document.getElementById('tab-login').classList.toggle('active', isLogin);
+            document.getElementById('tab-signup').classList.toggle('active', !isLogin);
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                window.location.href = 'index.html';
+            } catch (err) {
+                showToast(getErrorMsg(err.code));
+            }
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const confirm = document.getElementById('signup-confirm').value;
+            if (password !== confirm) { showToast('비밀번호가 일치하지 않아요'); return; }
+            try {
+                await auth.createUserWithEmailAndPassword(email, password);
+                window.location.href = 'index.html';
+            } catch (err) {
+                showToast(getErrorMsg(err.code));
+            }
+        }
+
+        function getErrorMsg(code) {
+            const map = {
+                'auth/user-not-found': '등록된 계정이 없어요',
+                'auth/wrong-password': '비밀번호가 틀렸어요',
+                'auth/email-already-in-use': '이미 사용 중인 이메일이에요',
+                'auth/invalid-email': '이메일 형식이 올바르지 않아요',
+                'auth/weak-password': '비밀번호는 6자 이상이어야 해요',
+                'auth/invalid-credential': '이메일 또는 비밀번호가 틀렸어요',
+            };
+            return map[code] || '오류가 발생했어요. 다시 시도해주세요.';
+        }
+
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.style.opacity = '1';
+            el.style.transform = 'translateX(-50%) translateY(0)';
+            setTimeout(() => {
+                el.style.opacity = '0';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

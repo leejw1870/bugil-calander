@@ -1,7 +1,13 @@
 /* ================================
    BUGIL - Main Application
-   localStorage 기반 (백엔드 불필요)
+   Firebase 기반 (계정별 데이터 동기화)
    ================================ */
+
+function handleLogout() {
+    auth.signOut().then(() => {
+        window.location.href = 'login.html';
+    });
+}
 
 // ========================
 // 전역 상태
@@ -27,19 +33,22 @@ const CATEGORIES = {
 // ========================
 // localStorage CRUD
 // ========================
-const STORAGE_KEY = 'studyplanner_schedules';
+// Firebase 캐시 (메모리)
+let schedulesCache = [];
+let recordsCache = [];
+let currentUid = null;
 
 function loadSchedules() {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-    } catch {
-        return [];
-    }
+    return schedulesCache;
 }
 
 function saveSchedules(schedules) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
+    schedulesCache = schedules;
+    if (currentUid) {
+        db.collection('users').doc(currentUid).collection('data').doc('schedules')
+            .set({ items: schedules })
+            .catch(e => console.error('Schedule save error:', e));
+    }
 }
 
 function generateId() {
@@ -71,8 +80,9 @@ function deleteScheduleById(id) {
 // ========================
 // 샘플 데이터
 // ========================
-function initSampleData() {
-    if (localStorage.getItem('studyplanner_initialized')) return;
+async function initSampleData() {
+    const metaDoc = await db.collection('users').doc(currentUid).collection('data').doc('meta').get();
+    if (metaDoc.exists) return;
 
     const today = new Date();
     const fmt = (d) => {
@@ -93,22 +103,52 @@ function initSampleData() {
     ];
 
     const schedules = samples.map(s => ({ ...s, id: generateId() }));
-    saveSchedules(schedules);
-    localStorage.setItem('studyplanner_initialized', '1');
+    schedulesCache = schedules;
+    await db.collection('users').doc(currentUid).collection('data').doc('schedules').set({ items: schedules });
+    await db.collection('users').doc(currentUid).collection('data').doc('meta').set({ initialized: true });
 }
 
 // ========================
 // 초기화
 // ========================
 document.addEventListener('DOMContentLoaded', () => {
-    initSampleData();
-    initRecord();
-    initToday();
-    navigate('dashboard');
-    initFormListeners();
-    initRepeatListeners();
-    initSearch();
-    initCalendarNav();
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+            window.location.href = 'login.html';
+            return;
+        }
+        currentUid = user.uid;
+
+        // Firestore에서 데이터 로드
+        try {
+            const schedulesDoc = await db.collection('users').doc(currentUid)
+                .collection('data').doc('schedules').get();
+            schedulesCache = schedulesDoc.exists ? (schedulesDoc.data().items || []) : [];
+
+            const recordsDoc = await db.collection('users').doc(currentUid)
+                .collection('data').doc('records').get();
+            recordsCache = recordsDoc.exists
+                ? (recordsDoc.data().items || JSON.parse(JSON.stringify(DEFAULT_RECORDS)))
+                : JSON.parse(JSON.stringify(DEFAULT_RECORDS));
+        } catch (e) {
+            console.error('데이터 로드 실패:', e);
+            schedulesCache = [];
+            recordsCache = JSON.parse(JSON.stringify(DEFAULT_RECORDS));
+        }
+
+        await initSampleData();
+        initRecord();
+        initToday();
+        navigate('dashboard');
+        initFormListeners();
+        initRepeatListeners();
+        initSearch();
+        initCalendarNav();
+
+        // 사용자 이메일 표시
+        const emailEl = document.getElementById('user-email');
+        if (emailEl) emailEl.textContent = user.email;
+    });
 });
 
 function initToday() {
@@ -1076,7 +1116,6 @@ function swReset() {
 // ========================
 // 생기부 관리
 // ========================
-const RECORD_KEY = 'bugil_records';
 const DEFAULT_RECORDS = [
     { id: 'r1', title: '자율활동',           content: '', emoji: '🎯', updatedAt: '' },
     { id: 'r2', title: '동아리활동',          content: '', emoji: '🤝', updatedAt: '' },
@@ -1091,14 +1130,16 @@ let currentRecordId = null;
 let recordAutoSaveTimer = null;
 
 function loadRecords() {
-    try {
-        const raw = localStorage.getItem(RECORD_KEY);
-        return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_RECORDS));
-    } catch { return JSON.parse(JSON.stringify(DEFAULT_RECORDS)); }
+    return recordsCache.length ? recordsCache : JSON.parse(JSON.stringify(DEFAULT_RECORDS));
 }
 
 function saveRecords(records) {
-    localStorage.setItem(RECORD_KEY, JSON.stringify(records));
+    recordsCache = records;
+    if (currentUid) {
+        db.collection('users').doc(currentUid).collection('data').doc('records')
+            .set({ items: records })
+            .catch(e => console.error('Record save error:', e));
+    }
 }
 
 function renderRecordList() {
@@ -1243,9 +1284,8 @@ function copyRecord() {
 }
 
 function initRecord() {
-    // 저장된 records 없으면 기본값 저장
-    if (!localStorage.getItem(RECORD_KEY)) {
-        saveRecords(JSON.parse(JSON.stringify(DEFAULT_RECORDS)));
+    if (!recordsCache.length) {
+        recordsCache = JSON.parse(JSON.stringify(DEFAULT_RECORDS));
     }
     renderRecordList();
 }

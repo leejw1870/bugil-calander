@@ -9,6 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
+
     <style>
         body { font-family: 'Pretendard Variable', Pretendard, system-ui, sans-serif; }
 
@@ -153,7 +158,11 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // ── 퇴장 애니메이션 → 대시보드 이동 ─────────────────
+    // ── 로그인 상태 확인 ─────────────────────────────────
+    let isLoggedIn = false;
+    auth.onAuthStateChanged(user => { isLoggedIn = !!user; });
+
+    // ── 퇴장 애니메이션 ─────────────────────────────────
     let exiting = false;
     function exitToApp() {
         if (exiting) return;
@@ -178,19 +187,20 @@
             document.getElementById('clock').classList.add('exit-clock');
         }, 350);
 
-        // 시계 다 사라진 뒤 → 플래시 메시지 표시
-        const messages = ['welcome', 'good luck'];
-        const msg = messages[Math.floor(Math.random() * messages.length)];
-        setTimeout(() => {
-            const el = document.getElementById('flash-msg');
-            el.textContent = msg;
-            el.classList.add('show');
-        }, 800);
-
-        // 플래시 메시지 끝난 뒤 → 이동
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1950);
+        if (isLoggedIn) {
+            // 로그인 상태: flash 메시지 → 대시보드
+            const messages = ['welcome', 'good luck'];
+            const msg = messages[Math.floor(Math.random() * messages.length)];
+            setTimeout(() => {
+                const el = document.getElementById('flash-msg');
+                el.textContent = msg;
+                el.classList.add('show');
+            }, 800);
+            setTimeout(() => { window.location.href = 'index.html'; }, 1950);
+        } else {
+            // 비로그인 상태: 바로 로그인 페이지
+            setTimeout(() => { window.location.href = 'login.html'; }, 750);
+        }
     }
     </script>
 </body>
